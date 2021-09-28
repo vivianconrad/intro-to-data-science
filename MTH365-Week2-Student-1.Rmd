@@ -1,0 +1,192 @@
+---
+title: 'Week 1 Example: Baby Names in the US'
+author: 'MTH 365: Introduction to Data Science'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Welcome to MTH 365!
+
+This semester you'll learn about the basics of data science, including: 
+
+- Data visualization
+- Data manipulation
+- Data management
+- Exploratory data analysis
+- Introductory data modeling
+- R programming
+
+Each week, I'll provide you with an RMarkdown document (like this) containing the code for in-class examples. Here's what I suggest:
+
+1. Take notes in this RMarkdown document. You can write anywhere in the white spaces.
+2. Run the code on your machines as we run it in class. The code "chunks" are in grey.
+3. After class, "Knit" this document into an HTML, PDF, or Word (your choice) file to use later.
+
+Of course, you can take notes however you choose! However this isn't one of those courses that you can just "follow along" during. Actively taking notes and running code is the best way to learn to do data science!
+
+----
+
+Before we get started, a few things you should know:
+
+## R Markdown Basics
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+To embed a code chunk, use option-command-i on macs, ctrl-alt-i on pc
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+  **Try removing the "Echo" and see what happens.**
+  
+## New R packages
+
+When we come across a new R package, you'll see the command `install.packages(PACKAGENAME)` commented out in your code. You can either:
+
+1. Remove the `#` comment and run this code. 
+2. Click on the "Packages" tab, and click the Install button. Type the package name and click install.
+
+You only need to do this one time! Once a package is installed on your computer, you don't need to install it again.
+  **This is important.  Some packages require restarting r to install.  If you don't comment out after installing a package, it will end your r session and you'll have to re-install all other packages.**
+
+
+## Baby names over time
+
+The `R` package `babynames` provides data about the popularity of individual baby names from the US Social Security Administration. Data includes all names used at least 5 times in a year beginning in 1880.
+
+
+Babynames is one of the packages that gets mad if you install it twice.  Use library(car) to demo how it goes from unchecked to checked in the system library.
+```{r}
+install.packages("babynames")
+library(babynames)
+```
+
+Let's track the popularity of a particular name: _Nathan_.
+
+```{r, warning=FALSE, message=FALSE}
+#install.packages("tidyverse")
+library(tidyverse)
+
+
+babynames %>% filter(name=='Nathan')
+```
+
+Use the `ggplot()` command from the `tidyverse` and `ggplot2` libraries (`ggplot2` is contained in the `tidyverse` - more later) to make a plot of name popularity over time.
+
+```{r, fig.width=4, fig.height=3}
+
+filtered_names <- babynames %>% filter(name=='Nathan')
+
+
+ggplot(data=filtered_names, aes(x=year, y=prop)) +
+  geom_point()
+```
+
+What's with those points near the x-axis?
+
+```{r}
+
+ggplot(data=filtered_names, aes(x=year, y=prop)) +
+  geom_point(aes(colour=sex))
+
+```
+
+Let's make this more presentation-ready by adding axis labels.
+
+```{r}
+
+ggplot(data=filtered_names, aes(x=year, y=prop)) +
+  geom_line(aes(colour=sex)) + xlab('Year') +
+  ylab('Prop. of Babies Named Nathan')
+```
+
+
+What about alternative spellings?
+
+```{r}
+# 
+filtered_names2 <- babynames %>% filter(name %in% c('Nathan', 'Nate', 'Nathaniel'))
+
+# 
+ggplot(data=filtered_names2, aes(x=year, y=prop)) +
+  geom_line(aes(colour=sex)) +
+  xlab('Year') +
+  ylab('Prop. of Babies')
+```
+
+----
+
+### Example: Baby names
+
+What other names should we try?
+
+```{r}
+
+filtered_names <- babynames %>% filter(name %in% c('Nathan'))
+ggplot(data=filtered_names, aes(x=year, y=prop)) + 
+  geom_line(aes(colour=sex)) + xlab('Year') +
+  ylab('Prop. of Babies Named Nathan') 
+```
+
+## Selected names over time
+
+Has _Game of Thrones_ added new names to the lexicon?
+
+```{r}
+filtered_names <- babynames %>% filter(name %in% c('Arya'))
+
+ggplot(data=filtered_names, aes(x=year, y=prop)) + 
+  geom_line(aes(colour=sex)) + xlab('Year') +
+  ylab('Prop. of Babies Named Arya') +
+  geom_curve(x=2011, xend=2000, y=0.0002, yend=0.0007, colour='darkgrey') +
+  geom_text(x=1995, y=0.0007, label='First episode of \n "Game of Thrones"', colour='black') +
+  geom_curve(x=1996, xend=1990, y=0.00003, yend=0.0004, colour='darkgrey') +
+  geom_text(x=1990, y=0.0005, label='"A Song of Ice and Fire" \n is published', colour='black')
+```
+
+What about popular songs, such as "Rudolph the Red Nosed Reindeer"?
+
+```{r, echo=FALSE}
+filtered_names <- babynames %>% filter(name %in% c('Rudolph'))
+
+ggplot(data=filtered_names, aes(x=year, y=prop)) +
+  geom_line(aes(colour=sex)) + xlab('Year') + ylab('Prop. of Babies Named Rudolph') +
+  geom_curve(x=1939, xend=1970, y=0.0006, yend=0.0010, colour='darkgrey') +
+  geom_text(x=1980, y=0.0011, label='"Rudolph the Red Nosed Reindeer"', colour='black')
+```
+
+### Try your own! 
+
+Write the code below to track some names of your choice.
+
+```{r}
+# Write your code here: copying/pasting is okay!
+
+```
+
+Reflection Questions:
+
+1.  With 1 being too slow and 5 being too fast, how was the speed of the video? 
+
+2.  With 1 being too basic and 5 being too advanced, how was the level of the video? 
+
+3.  Are there any topics you specifically want to address during the class meeting?
+
+4.  Any additonal thoughts/comments on the notes:
+
+
+

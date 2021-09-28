@@ -1,0 +1,275 @@
+---
+title: 'Section 3: Data Wrangling (Part 1)'
+author: 'MTH 365: Introduction to Data Science'
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+## Recommended Reading
+
+- _Modern Data Science with R_ Ch. 4: Data Wrangling
+- _Modern Data Science with R_ Ch. 5: Tidy Data and Iteration
+- Wickham, Hadley. (2014). "Tidy Data". _Journal of Statistical Software_ 59(10). Available on BlueLine.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+## Data structure and semantics
+
+- Most statistical datasets are tables made up of _rows_ and _columns_
+
+A dataset is a collection of _values_: these can be _numbers_ (quantitative) or character _strings_ (qualitative)
+
+- Every value belongs to a variable and an observation
+
+__Variable__: 
+
+__Observation__: 
+
+## Tidy data
+
+"Tidy" data is a standard way of mapping the meaning of a dataset to its structure. 
+
+1. Each variable forms a column.
+2. Each observation forms a row.
+3. Each type of observational unit forms a table.
+
+Any other arrangement of the data is called "messy".
+
+person|treatment|result
+---|---|---
+John Smith|a|-
+Jane Doe|a|16
+Mary Johnson|a|3
+John Smith|b|2
+Jane Doe|b|11
+Mary Johnson|b|1
+
+Real datasets can, and often do, violate the three principles of tidy data in almost every way imaginable! 
+
+## Example: Gapminder
+
+Gapminder is an independent Swedish foundation with no political, religious or economic affiliations. __Gapminder is a fact tank, not a think tank.__ Gapminder fights devastating misconceptions about global development. Gapminder produces free teaching resources making the world understandable based on reliable statistics. Gapminder promotes a fact-based worldview everyone can understand.  Gapminder collaborates with universities, UN, public agencies and non-governmental organizations.
+
+## Loading the Gapminder data set
+
+```{r}
+library(dslabs)
+library(tidyverse)
+data(gapminder)
+glimpse(gapminder)
+```
+
+## Exploring the Gapminder data set
+
+```{r, warning=FALSE}
+ggplot(gapminder, aes(x=fertility, y=infant_mortality)) +
+  geom_point()
+```
+
+```{r, warning=FALSE}
+ggplot(gapminder, aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=country))
+```
+
+```{r, warning=FALSE}
+ggplot(gapminder, aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=region))
+```
+
+```{r, warning=FALSE}
+ggplot(gapminder, aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=region)) + 
+  facet_wrap(~year)
+```
+
+## Data wrangling with `dplyr`
+
+There are five major `dplyr` functions for wrangling data:
+
+- `select()`: take a subset of the columns (variables/features)
+- `filter()`: take a subset of the rows (observations)
+- `mutate()`: add or modify existing columns
+- `arrange()`: sort the rows
+- `summarize()`: aggregate the data across rows (grouping)
+
+## `dplyr` rules for functions
+
+
+## Piping v. layering
+
+Pipe or layer?
+
+
+```{r}
+gapminder_short <- gapminder %>% select(gdp, region)
+glimpse(gapminder_short)
+```
+
+## `filter()`
+
+- `filter()`: 
+
+```{r}
+gapminder2000 <- gapminder %>% 
+  filter(year==2000)
+glimpse(gapminder2000)
+```
+
+```{r, warning=FALSE}
+ggplot(gapminder2000, aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=region))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+gapminder %>% filter(year==2000) %>%
+  filter(region %in% c('Central Asia', 
+                       'Eastern Asia', 
+                       'Polynesia', 
+                       'South-Eastern Asia', 
+                       'Southern Asia', 
+                       'Western Asia')) %>%
+  ggplot(aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=region))
+```
+
+```{r, warning=FALSE}
+gapminder %>% filter(year==2000) %>%
+  filter(region %in% c('Central Asia', 'Eastern Asia', 
+                       'Polynesia', 'South-Eastern Asia', 
+                       'Southern Asia', 'Western Asia')) %>%
+  ggplot(aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=region))
+```
+
+## (Smooth) Operators
+Explain, in your own words, what these operations do.
+
+- `%>%`: 
+- `%in%`:
+- `==`: 
+
+## More Operators
+
+Operator|Definition                   
+---|---
+`<`| less than                    
+`<=`|	less than or equal to
+`>`| greater than
+`>=`|	greater than or equal to 
+`==`|	exactly equal to 
+`!=`|	not equal to 
+`x & y`| `x` AND `y`                  
+`x %in% y`| test if `x` is in `y`   
+
+
+## Fertility and infant mortality in the US
+
+Example: In your notes, modify your plot for another country. Describe how fertility and infant mortality are changing over time.
+
+```{r, warning=FALSE}
+gapminder %>% filter(country=='United States') %>%
+  ggplot(aes(x=fertility, y=infant_mortality)) +
+  geom_point(aes(col=year))
+```
+
+Relationship between fertility and infant mortality over time: 
+
+
+
+## `mutate()`
+
+- `mutate()` lets us create new variables based on manipulations of the old variables
+
+Example: We'd like to calculate the gross domestic product per capita. Here are the variables in our data - write an expression to do this calculation.
+
+```{r}
+names(gapminder)
+```
+
+```{r}
+gapminder <- gapminder %>% 
+  mutate(GDP_pc = gdp/population)
+```
+
+Example: How do we find out which countries have the highest GDP per capita?
+
+```{r, warning=FALSE, message=FALSE}
+ggplot(gapminder, aes(x=GDP_pc))+geom_density()
+```
+
+Example: How do we find out which countries have the highest GDP per capita?
+
+```{r}
+high_GDP <- gapminder %>% filter(GDP_pc>50000)
+```
+
+```{r}
+high_GDP
+```
+
+## `arrange()`
+
+Right now, the data is sorted by country, then year. We could use the `arrange()` command to resort in terms of another variable.
+
+```{r, eval=-2}
+GDP_only <- gapminder %>% select(country, year, GDP_pc, continent)
+GDP_only %>% arrange(desc(GDP_pc))
+```
+
+```{r, eval=FALSE}
+GDP_only %>% arrange(continent, desc(GDP_pc))
+```
+
+## `summarize()`
+
+If we want to compare summary statistics, we might use `summarize()`.
+
+```{r}
+GDP_only %>% summarize(avg_GDP_pc=mean(GDP_pc), 
+                       sd_GDP_pc=sd(GDP_pc), 
+                       min_GDP_pc=min(GDP_pc), 
+                       max_GDP_pc=max(GDP_pc))
+```
+
+```{r}
+GDP_only %>% filter(GDP_pc != "NA") %>%
+  summarize(avg_GDP_pc=mean(GDP_pc), 
+            sd_GDP_pc=sd(GDP_pc), 
+            min_GDP_pc=min(GDP_pc), 
+            max_GDP_pc=max(GDP_pc),
+            N=n())
+```
+
+```{r}
+GDP_only %>% filter(GDP_pc != "NA") %>%
+  group_by(continent) %>%
+  summarize(avg_GDP_pc=mean(GDP_pc), 
+            sd_GDP_pc=sd(GDP_pc), 
+            min_GDP_pc=min(GDP_pc), 
+            max_GDP_pc=max(GDP_pc),
+            N=n())
+```
+
+```{r}
+GDP_only %>% filter(GDP_pc != "NA") %>%
+  filter(year==2010) %>%
+  group_by(continent) %>%
+  summarize(avg_GDP_pc=mean(GDP_pc), 
+            sd_GDP_pc=sd(GDP_pc), 
+            min_GDP_pc=min(GDP_pc), 
+            max_GDP_pc=max(GDP_pc),
+            N=n())
+```
+
+
+Reflection Questions:
+
+1.  With 1 being too slow and 5 being too fast, how was the speed of the video? 
+
+2.  With 1 being too basic and 5 being too advanced, how was the level of the video? 
+
+3.  Are there any topics you specifically want to address during the class meeting?
+
+4.  Any additonal thoughts/comments on the notes:

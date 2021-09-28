@@ -1,0 +1,264 @@
+---
+title: "Section 2: Data Visualization (Part 1)"
+author: 'MTH 365: Introduction to Data Science'
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+## Recommended Reading
+
+- _Modern Data Science with R_ Ch. 2: Data Visualization
+- _Modern Data Science with R_ Ch. 3: A Grammar for Graphics
+
+```{r, message=FALSE}
+#install.packages(dslabs)
+library(dslabs)
+```
+
+## `ggplot2`
+
+`ggplot2` is an R package for "declaratively creating graphics"
+
+- https://ggplot2.tidyverse.org/reference/
+
+__Basic Format of a Plot__:
+
+`data and aesthetics + plot type + options`
+
+```{r, message=FALSE}
+#install.packages(tidyverse)
+library(tidyverse)
+library(ggplot2)
+```
+
+## Example: Hate crimes and income inequality
+
+A FiveThirtyEight article published in 2017 claimed that higher rates of hate crimes were tied to greater income inequality.
+
+https://fivethirtyeight.com/features/higher-rates-of-hate-crimes-are-tied-to-income-inequality/
+
+- FiveThirtyEight publishes their data sets - let's investigate for ourselves.
+- Data sets are posted on BlueLine. Download this data set, and save it to your computer. 
+
+Follow these steps to read the data into RStudio:
+
+1. In the Environment tab, click "Import Dataset". Since this is a CSV document, you want to import a text file.
+2. Navigate to your CSV data set. Make sure that the first row contains column names. 
+3. Import the data.
+
+You'll see a line of code pop up in your R console, it should start with `read.csv()`. Copy this code and replace the provided statement (`hate_crimes <- read.csv("~/OneDrive - Creighton University/Spring 2019 Courses/MTH 365 - Intro to Data Science/Data/hate_crimes.csv")`) with the one you just generated.
+
+```{r}
+library(readr)
+hate_crimes <- read_csv("~/School/MTH 365/hate_crimes.csv")
+glimpse(hate_crimes)
+```
+
+## A simple plot?
+
+```{r}
+ggplot(hate_crimes, aes(x=median_income, y=hate_crimes_fbi)) +
+  geom_point()
+```
+
+```{r}
+ggplot(hate_crimes, aes(x=median_income, y=hate_crimes_fbi))
+```
+
+```{r}
+ggplot(hate_crimes, aes(x=median_income, y=hate_crimes_fbi)) + 
+  geom_text(aes(label=state))
+```
+
+```{r}
+ggplot(hate_crimes, aes(x=median_income, y=hate_crimes_fbi)) +
+  geom_text(aes(label=state, color=region))
+```
+
+## Measuring income inequality
+
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crimes_fbi)) +
+  geom_point(aes(color=region))
+```
+
+Does source matter?
+
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crimes_splc)) +
+  geom_point(aes(color=region))
+```
+
+## Adding plot options
+
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crimes_fbi)) +
+  geom_point(aes(color=region)) + 
+  xlab('Gini Index') + 
+  ylab('Hate Crimes (FBI, Sept. 2016)')
+```
+
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crimes_fbi)) +
+  geom_point(aes(color=region, size=unemployment)) + 
+  xlab('Gini Index') + 
+  ylab('Hate Crimes (FBI, Sept. 2016)')
+```
+
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crimes_fbi)) +
+  geom_point(aes(color=region, size=unemployment)) + 
+  xlab('Gini Index') + 
+  ylab('Hate Crimes (FBI, Sept. 2016)') + 
+  facet_wrap(~region, nrow=1)
+```
+
+## Weather patterns
+
+The data set `Weather` contains data on weather-related variables for several world cities.
+
+```{r}
+#install.packages(mosaicData)
+library(mosaicData)
+data(Weather)
+glimpse(Weather)
+```
+
+```{r}
+ggplot(Weather, aes(y=avg_temp)) + 
+  geom_boxplot()
+```
+
+```{r}
+ggplot(Weather, aes(y=avg_temp, group=city)) + 
+  geom_boxplot(aes(color=city))
+```
+
+```{r}
+ggplot(Weather, aes(x=date, y=avg_temp)) +
+  geom_point()
+```
+
+```{r}
+ggplot(Weather, aes(x=date, y=avg_temp)) +
+  geom_point(aes(color=city))
+```
+
+### Weather patterns in Chicago
+
+```{r}
+Chicago <- Weather %>% filter(city=='Chicago')
+ggplot(Chicago, aes(x=date, y=avg_temp)) +
+  geom_point(col='blue')
+```
+
+```{r}
+ggplot(Chicago, aes(x=date, y=avg_temp)) +
+  geom_point(aes(color=events))
+```
+
+```{r}
+ggplot(Chicago, aes(x=date, y=avg_temp)) +
+  geom_smooth()
+```
+
+```{r}
+ggplot(Chicago, aes(x=date, y=avg_temp)) +
+  geom_smooth() +
+  geom_point()
+```
+
+```{r}
+ggplot(Chicago, aes(x=low_temp, y=high_temp)) +
+  geom_point(aes(color=month))
+```
+
+```{r}
+ggplot(Chicago, aes(x=low_temp, y=high_temp)) +
+  geom_point(aes(color=as.factor(month)))
+```
+
+```{r}
+ggplot(Chicago, aes(x=avg_temp)) + 
+  geom_histogram()
+```
+
+```{r}
+ggplot(Chicago, aes(x=avg_temp)) + 
+  geom_density(fill='lightblue')
+```
+
+```{r}
+ggplot(Chicago, aes(x=avg_temp)) + 
+  geom_density(fill='lightblue', alpha=0.5)
+```
+
+```{r}
+ggplot(Chicago, aes(x=avg_temp, group=month)) + 
+  geom_density(aes(color=as.factor(month), fill=as.factor(month)), alpha=0.5)
+```
+
+```{r}
+ggplot(Chicago, aes(x=avg_temp, group=month)) +
+  geom_density(aes(color=as.factor(month), fill=as.factor(month)), alpha=0.5) + 
+  facet_wrap(~month, nrow=3)
+```
+
+```{r}
+ggplot(Chicago, aes(x=avg_vis, group=month)) + 
+  geom_density(aes(color=as.factor(month), fill=as.factor(month)), alpha=0.5) +
+  facet_wrap(~month, nrow=3)
+```
+
+## Weather events
+
+```{r}
+ggplot(Weather, aes(x=events)) +
+  geom_bar()
+```
+
+```{r}
+ggplot(Weather, aes(x=events)) +
+  geom_bar() +
+  coord_flip()
+```
+
+### Weather events in Chicago
+
+```{r}
+ggplot(Chicago, aes(x=events)) +
+  geom_bar() +
+  coord_flip() +
+  facet_wrap(~year, nrow=2)
+```
+
+## Mutate Command
+
+We're going to cover one data wrangling command here, and its the 'Mutate' command.  The mutate function is used to add columns to a dataframe (and not, as the same seems to suggest, change existing columns).  As an example, we are going to add a column to the Weather dataset that records the gap between the high temperature and the low temperature for each row.
+
+```{r}
+weather_gap<-Weather%>%
+  mutate(gap =high_temp-low_temp)
+glimpse(weather_gap)
+```
+
+Here, we're naming our new dataframe weather_gap.  The mutate function requires a dataframe as its first entry (which here is the Weather dataset that we are piping in).  The "gap=high_temp-low_temp" line means to name the new column "gap", and that new column is found by subtracting the high_temp from the low_temp.  After running the "glimpse" command, you can see the new column in the dataframe.
+
+In this code chunk, try mutatins a categorial data column using algebraic operations.  Below this chunk, explain what happened, as best you understand it.
+```{r}
+
+```
+
+Reflection Questions:
+
+1.  With 1 being too slow and 5 being too fast, how was the speed of the video? 
+  3, the video was a good pace
+
+2.  With 1 being too basic and 5 being too advanced, how was the level of the video? 
+  4 it was hard to comprehend initially but I got it after I talked to the prof and watched it again.
+
+3.  Are there any topics you specifically want to address during the class meeting?
+  Nope
+  
+4.  Any additonal thoughts/comments on the notes:
+  Now that I'm not overthinking them, it's definately easier

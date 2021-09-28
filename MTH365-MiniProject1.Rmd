@@ -1,0 +1,78 @@
+---
+title: "Mini-Project 1: Managing a Social Media Brand"
+subtitle: "MTH 365: Intro to Data Science"
+author: "Vi Conrad"
+date: "Due September 14, 2020"
+output: html_document
+---
+
+In this lab you'll use data visualization tools to explore the performance metrics of posts published on a company's Facebook page. Twelve posts' performance metrics extracted from a cosmetic company's page. The data is available as `dataset_Facebook.csv`.
+
+- Source: S. Moro, P. Rita and B. Vala. "Predicting social media performance metrics and evaluation of the impact on brand building: A data mining approach". _Journal of Business Research_: 69 (9). 
+
+> Load the dataset into RStudio. How many social media posts are available?
+
+The variable names in this dataset are complicated! To simplify things, we'll rename the variables.
+
+```{r, eval=FALSE}
+colnames(dataset_Facebook) <- c('PageLikes', 'Type', 'Category', 'Month', 'Weekday', 'Hour', 'Paid', 'TotalReach', 'TotalImpressions', 'EngagedUsers', 'PostConsumers', 'PostConsumptions', 'ImpressionsByLikes', 'ReachByLikes', 'LikesEngaged', 'Comment', 'Like', 'Share', 'TotalInteractions')
+names(dataset_Facebook)
+```
+
+Some of these performance metrics are not intuitive. Facebook performance metrics generally fall into two categories: _visualizations_ (posts loaded in users' browsers) and _interactions_ (clicks on posts).
+
+Use this data to answer the following research questions. For each question, you should produce _at least one data visualization_, with appropriate axis and legend labels. Each data visualization should be accompanied by a paragraph describing the insights to be gained. 
+
+-------
+
+> 1. What type of post engages this company's Facebook followers the most?
+
+```{r}
+aggregate()
+```
+
+> 2. When is the ideal time for this company to post a photo to Facebook? When is the ideal time for this company to update their status on Facebook?
+
+```{r}
+hour & engagedusers
+```
+
+> 3. On average, how many clicks does each user make per post?
+
+```{r}
+likes engaged /total reach
+```
+
+> 4. On average, how many times does a user see each post?
+
+```{r}
+total impressions/total reach
+```
+
+> 5. How are shares and likes related? Does this depend on the type of post?
+
+```{r}
+
+```
+
+> 6. Do posts that reach a wider audience (more users) tend to have more interactions? Comments? Shares? Likes?
+
+```{r}
+
+```
+
+> 7. Do photos, links, or status updates reach a wider audience? What type of posts reach a _more engaged_ audience?
+
+```{r}
+
+```
+
+-------
+
+Your submissions will be assessed on:
+
+1. Quality of the data visualizations (5 pts. per question).
+2. Quality of your written responses (3 pt. per question).
+3. Code formatting: consistency, readability, etc. (2 pts. per question).
+
+Total points possible: 70

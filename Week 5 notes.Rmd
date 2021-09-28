@@ -1,0 +1,243 @@
+---
+title: 'Section 4: Data Wrangling (Part 2)'
+author: 'MTH 365: Introduction to Data Science'
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document
+---
+
+## Recommended Reading
+
+- _Modern Data Science with R_ Ch. 4: Data Wrangling
+- _Modern Data Science with R_ Ch. 5: Tidy Data and Iteration
+- Wickham, Hadley. (2014). "Tidy Data". _Journal of Statistical Software_ 59(10). Available on BlueLine.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+## Example: NYC flights
+
+The R package `nycflights13` contains data about all flights that departed one of the three New York City airports (JFK, LGA, and EWR) in 2013. As you can probably imagine, this isn't a small dataset.
+
+```{r}
+# install.packages('nycflights13')
+library(nycflights13)
+data(flights)
+
+names(flights)
+```
+
+## Data linkage
+
+Suppose we want to know more about the airline (`carrier`). In the data set, each carrier is stored using a two-letter code.
+
+```{r}
+table(flights$carrier)
+```
+
+- Can we _link_ the airline names to the letter codes?
+
+Use a common variable, called a _key_, to link the data.
+
+## `inner_join()`
+
+```{r}
+data(airlines)
+
+flights_carrier <- flights %>%
+  inner_join(airlines, by=c('carrier'='carrier'))
+```
+
+
+Did it work?
+
+```{r}
+names(flights_carrier)
+glimpse(flights_carrier)
+```
+
+## Exercises: Departure delays on United
+
+In teams of 2-3, complete the following exercises:
+
+1. Create a new data set, `flights2` that contains the carrier name, year, month, day, departure delay, arrival delay, origin airport, destination airport, and flight number.
+
+```{r}
+data(airlines)
+
+flights2 <- flights_carrier %>%
+  select(name, year, month, day, dep_delay, arr_delay, origin, dest, flight)
+glimpse(flights2)
+```
+
+2. How many unique flight routes does United Airlines run that depart the New York area?
+
+```{r}
+UQNYFlightsDEPT <- flights2 %>%
+  filter(name=="United Air Lines Inc.") %>%
+  count(origin, dest)
+glimpse(UQNYFlightsDEPT)
+
+```
+since there are 53 different rows, there are 53 unique routes
+
+3. How many unique destinations does United Airlines serve from the New York Area?
+
+```{r}
+UQNYFlightsARR <- flights2 %>%
+  filter(name=="United Air Lines Inc.") %>%
+  count(dest)
+glimpse(UQNYFlightsARR)
+```
+There are 47 unique destinations
+
+4. How many unique flight routes does United Airlines run from each of the three area airports?
+
+```{r}
+UQNYFlightsJFK <- flights2 %>%
+  filter(name=="United Air Lines Inc.") %>%
+  count(dest=="JFK")
+glimpse(UQNYFlightsJFK)
+```
+```{r}
+UQNYFlightsLGA <- flights2 %>%
+  filter(name=="United Air Lines Inc.") %>%
+  count(dest=="LGA")
+glimpse(UQNYFlightsLGA)
+```
+
+```{r}
+UQNYFlightsEWR <- flights2 %>%
+  filter(name=="United Air Lines Inc.", dest=="EWR") %>%
+  select(dest)
+glimpse(UQNYFlightsEWR)
+```
+JFK: 2
+LGA: 2
+EWR: 2
+
+5. What is the average departure delay of a United Airlines flight leaving any New York area airport?
+
+```{r}
+UQNYFlightsDEPT <- flights2 %>%
+  filter(name=="United Air Lines Inc.", dep_delay!="NA") %>%
+  select(dep_delay)
+mean(UQNYFlightsDEPT$dep_delay)
+```
+The average departure delay is 12.11 minutes
+
+6. What is the average departure delay of a United Airlines flight leaving JFK? LGA? EWR?
+
+```{r}
+UQNYFlightsDEPT <- flights2 %>%
+  filter(name=="United Air Lines Inc.", dep_delay!="NA", origin=="JFK") %>%
+  select(dep_delay)
+mean(UQNYFlightsDEPT$dep_delay)
+```
+The average departure delay for JFK is 7.9 minutes
+
+```{r}
+UQNYFlightsDEPT <- flights2 %>%
+  filter(name=="United Air Lines Inc.", dep_delay!="NA", origin=="LGA") %>%
+  select(dep_delay)
+mean(UQNYFlightsDEPT$dep_delay)
+```
+The average departure delay for LGA is 12.09 minutes
+
+```{r}
+UQNYFlightsDEPT <- flights2 %>%
+  filter(name=="United Air Lines Inc.", dep_delay!="NA", origin=="EWR") %>%
+  select(dep_delay)
+mean(UQNYFlightsDEPT$dep_delay)
+```
+The average departure delay for EWR is 12.52 minutes
+
+## Example: Relative age effect
+
+The "Relative Age Effect" is an attempt to explain anomalies in the distribution of birth month among athletes. Briefly, the idea is that children born just after the age cut-off for participation will be as much as 11 months older than their fellow athletes, which is enough of a disparity to give them an advantage. This advantage gets compounded over the years, resulting in notably more professional athletes born in these months. 
+
+Is there evidence of the relative age effect in professional baseball?
+
+This database contains pitching, hitting, and fielding statistics for Major League Baseball from 1871 through 2016. It includes data from the two current leagues (American and National), the four other "major" leagues (American Association, Union Association, Players League, and Federal League), and the National Association of 1871-1875.
+
+```{r}
+#install.packages('Lahman')
+library(Lahman)
+```
+
+Let's start with pitchers.
+
+```{r}
+data(Pitching)
+names(Pitching)
+```
+
+Check the documentation for the `Lahman` package. How could we get the birthdays of professional pitchers?
+
+```{r}
+data(Master)
+names(Master)
+```
+
+
+```{r}
+pitcher_bday <- Pitching %>%
+  inner_join(Master, by=c('playerID'='playerID'))
+```
+
+Let's simplify this data set to include only player ID and birth month.
+
+```{r}
+pitcher_bday <- pitcher_bday %>% select(c('playerID', 'birthMonth'))
+pitcher_bday %>% group_by(birthMonth) %>% 
+  summarize(N=n())
+```
+
+__Problem__: Are players unique?
+
+```{r}
+pitcher_bday %>% arrange(playerID)
+```
+
+Run this code in your notes and see what happens. (Comment it out before you compile your document - trust me.)
+
+```{r}
+pitcher_bday %>% distinct() %>% 
+  group_by(birthMonth) %>% 
+  summarize(N=n())
+```
+
+
+```{r}
+unique_bday <- pitcher_bday %>% 
+  distinct() %>% 
+  group_by(birthMonth) %>% 
+  summarize(N=n())
+```
+
+```{r, warning=FALSE}
+ggplot(pitcher_bday, aes(x=birthMonth)) + 
+  geom_bar(aes(fill=birthMonth))
+```
+
+```{r, eval=FALSE, warning=FALSE}
+ggplot(pitcher_bday, aes(x=as.factor(birthMonth))) +
+  geom_bar(aes(fill=as.factor(birthMonth))) +
+  labs(x='Birth Month') +
+  theme(legend.position="none")
+```
+
+
+
+Reflection Questions:
+
+1.  With 1 being too slow and 5 being too fast, how was the speed of the video? 
+3
+
+2.  With 1 being too basic and 5 being too advanced, how was the level of the video? 
+2
+3.  Are there any topics you specifically want to address during the class meeting?
+
+4.  Any additonal thoughts/comments on the notes:
+

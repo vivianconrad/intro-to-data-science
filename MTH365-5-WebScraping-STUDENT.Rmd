@@ -1,0 +1,174 @@
+---
+title: 'Section 5: Web Scraping'
+author: 'MTH 365: Introduction to Data Science'
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+## Resources
+
+- "Web Scraping in R: rvest Tutorial": https://www.datacamp.com/community/tutorials/r-web-scraping-rvest
+- "rvest: easy web scraping with R": https://blog.rstudio.com/2014/11/24/rvest-easy-web-scraping-with-r/
+- "Web scraping tutorial in R": https://towardsdatascience.com/web-scraping-tutorial-in-r-5e71fd107f32
+
+## Web scraping?
+
+__Web scraping__ is the process of extracting this information automatically and transform it into a structured dataset.
+
+- There's TONS of data freely available online, but...
+- ...these data are provided in an unstructured format: you can always copy & paste, but it's time-consuming and prone to errors.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(knitr)
+```
+
+Two different scenarios:
+
+1. Screen scraping: 
+2. Web APIs (application programming interface): 
+
+__Why R?__ It includes all tools necessary to do web scraping, familiarity, direct analysis of data... 
+
+- But Python, Perl, Java are also efficient tools.
+
+## Hypertext Markup Language (HTML)
+
+Most of the data on the web is still largely available as HTML - while it is structured (hierarchical/tree based) it often is not available in a form useful for analysis (flat / tidy).
+
+```html
+<html>
+  <head>
+    <title>This is a title</title>
+  </head>
+  <body>
+    <p align="center">Hello world!</p>
+  </body>
+</html>
+```
+
+## `rvest`
+
+`rvest` is a package that makes basic processing and manipulation of HTML data straight forward.
+
+```{r}
+#install.packages('rvest')
+library(rvest)
+```
+
+`rvest` core functions:
+
+- `read_html` - read HTML data from a url or character string.
+- `html_nodes` - select specified nodes from the HTML document using CSS selectors.
+- `html_table` - parse an HTML table into a data frame.
+- `html_text` - extract tag pairs' content.
+- `html_name` - extract tags' names.
+- `html_attrs` - extract all of each tag's attributes.
+- `html_attr` - extract tags' attribute value by name.
+
+
+## Example: Top 250 movies on IMDB
+
+Take a look at the source code, look for the tag `table` tag:
+
+http://www.imdb.com/chart/top
+
+First check to make sure you're allowed! IMDB allows users to access the data...
+
+```{r warning=FALSE}
+# install.packages("robotstxt")
+library(robotstxt)
+paths_allowed("http://www.imdb.com")
+```
+
+... while other sites like Facebook (now) don't.
+
+```{r warning=FALSE}
+paths_allowed("http://www.facebook.com")
+```
+
+Here's some sample code for scraping IMDB, you might want to add some comments explaining what each line does.
+
+```{r message=FALSE}
+library(rvest)
+
+page <- read_html("http://www.imdb.com/chart/top")
+
+titles <- page %>%
+  html_nodes(".titleColumn a") %>%
+  html_text()
+
+years <- page %>%
+  html_nodes(".secondaryInfo") %>%
+  html_text() %>%
+  str_replace("\\(", "") %>% # remove (
+  str_replace("\\)", "") %>% # remove )
+  as.numeric()
+
+scores <- page %>%
+  html_nodes("#main strong") %>%
+  html_text() %>%
+  as.numeric()
+
+imdb_top_250 <- tibble(
+  title = titles, 
+  year = years, 
+  score = scores
+  )
+```
+
+### IMDB Top 250 (HTML)
+
+```{r echo=FALSE, results='asis'}
+imdb_top_250 %>% head(15)%>% rbind(rep("...", 3)) %>% kable(format = "html")
+```
+
+### IMDB Top 250 (tibble)
+
+```{r}
+glimpse(imdb_top_250)
+```
+
+Data wrangling may or may not be a lot of work depending on how messy the data are.
+
+- Let's add another variable for rank. Luckily, the data was pulled in rank order, so this should be pretty easy to accomplish.
+
+```{r}
+imdb_top_250 <- imdb_top_250 %>%
+  mutate(
+    rank = 1:nrow(imdb_top_250)
+  )
+
+glimpse(imdb_top_250)
+```
+
+## Analyzing the data
+
+Example: Using what you've learned so far, answer the following questions.
+
+1. Which 1995 movies made the list?
+
+```{r}
+
+```
+
+2. Which years have the most movies on the list?
+
+```{r}
+
+```
+
+3. Visualize the average yearly score for movies that made it on the top 250 list over time.
+
+```{r}
+
+```
+
+
+## Potential challenges
+
+- Unreliable formatting at the source
+- Data broken into many pages
+- ...
+
+
